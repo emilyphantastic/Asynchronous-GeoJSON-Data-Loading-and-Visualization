@@ -1,191 +1,219 @@
 <!DOCTYPE html>
 <html lang="en-US">
 
- <head>
-  <meta charset="utf-8">
-  <title>Earthquake List</title>
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
-  <style>
+<head>
+    <meta charset="utf-8">
+    <title>Taco Bell's in Seattle</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
+    <style>
 
-body {
-    margin: 0;
-    padding: 0;
-}
+        #side-panel > h2 {
+            margin-left: 10px;
+        }
 
-#container {
-    display: flex;
-    height: 100vh;
-    flex-direction: row;
-    align-items: stretch;
-}
+        body {
+            margin: 0;
+            padding: 0;
+        }
 
-#side-panel {
-    flex-basis: 500px;
-    overflow-y: scroll;
-}
+        #container {
+            display: flex;
+            height: 100vh;
+            flex-direction: row;
+            align-items: stretch;
+        }
 
-#map {
-    flex-grow: 1;
-}
-
-button {
-    margin-bottom: 10px;
-}
-
-table {
-    border-collapse: collapse;
-    border-spacing: 0;
-    width: 100%;
-    border: 1px solid #ddd;
-}
-
-th,
-td {
-    text-align: left;
-    padding: 16px;
-}
-
-tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-  </style>
- </head>
-
- <body>
-  <main id="container">
-      <div id="side-panel">
-
-          <h2>Earthquake List</h2>
-          <button>Sort by Magnitude</button>
-
-          <table>
-              <tr>
-                  <th>id</th>
-                  <th>magnitude</th>
-                  <th>timestamp</th>
-              </tr>
-          </table>
-
-      </div>
-      <div id="map"></div>
-  </main>
-  <script>
-
-mapboxgl.accessToken = 'pk.eyJ1IjoicGhhbmN5IiwiYSI6ImNrdmNzejJ4azBkZGsyb21scmU0aW02N3IifQ.v7OU5UTPLg9-4TVZyUFtng';
-
-let map = new mapboxgl.Map({
-container: 'map', // container ID
-style: 'mapbox://styles/mapbox/satellite-v9', // style URL
-zoom: 5.5, // starting zoom
-center: [138, 38] // starting center
-});
-
-async function geojsonFetch() {
-    let response, earthquakes, japan, table;
-    response = await fetch('assets/earthquakes.geojson');
-    earthquakes = await response.json();
-    response = await fetch('assets/japan.json');
-    japan = await response.json();
-
-    //load data to the map as new layers and table on the side.
-map.on('load', function loadingData() {
-
-map.addSource('earthquakes', {
-    type: 'geojson',
-    data: earthquakes
-});
-
-map.addLayer({
-    'id': 'earthquakes-layer',
-    'type': 'circle',
-    'source': 'earthquakes',
-    'paint': {
-        'circle-radius': 8,
-        'circle-stroke-width': 2,
-        'circle-color': 'red',
-        'circle-stroke-color': 'white'
-    }
-});
-
-
-map.addSource('japan', {
-    type: 'geojson',
-    data: japan
-});
-
-map.addLayer({
-    'id': 'japan-layer',
-    'type': 'fill',
-    'source': 'japan',
-    'paint': {
-        'fill-color': '#0080ff', // blue color fill
-        'fill-opacity': 0.5
-    }
-});
-
-});
-table = document.getElementsByTagName("table")[0];
-let row, cell1, cell2, cell3;
-for (let i = 0; i < earthquakes.features.length; i++) {
-    // Create an empty <tr> element and add it to the 1st position of the table:
-    row = table.insertRow(-1);
-    cell1 = row.insertCell(0);
-    cell2 = row.insertCell(1);
-    cell3 = row.insertCell(2);
-    cell1.innerHTML = earthquakes.features[i].properties.id;
-    cell2.innerHTML = earthquakes.features[i].properties.mag;
-    cell3.innerHTML = new Date(earthquakes.features[i].properties.time).toLocaleDateString(
-        "en-US");
-}
-
-};
-
-geojsonFetch();
-
-
-let btn = document.getElementsByTagName("button")[0];
-
-btn.addEventListener('click', sortTable);
-
-// define the function to sort table
-function sortTable(e) {
-    let table, rows, switching, i, x, y, shouldSwitch;
-    table = document.getElementsByTagName("table")[0];
-    switching = true;
-    /*Make a loop that will continue until
-    no switching has been done:*/
-    while (switching) {
-        //start by saying: no switching is done:
-        switching = false;
-        rows = table.rows;
-        /*Loop through all table rows (except the
-        first, which contains table headers):*/
-        for (i = 1; i < (rows.length - 1); i++) {
-            //start by saying there should be no switching:
-            shouldSwitch = false;
-            /*Get the two elements you want to compare,
-            one from current row and one from the next:*/
-            x = parseFloat(rows[i].getElementsByTagName("td")[1].innerHTML);
-            y = parseFloat(rows[i + 1].getElementsByTagName("td")[1].innerHTML);
-            //check if the two rows should switch place:
-            if (x < y) {
-                //if so, mark as a switch and break the loop:
-                shouldSwitch = true;
-                break;
+        @media screen and (max-width: 1024px) {
+            #side-panel {
+                display: none;
             }
         }
-        if (shouldSwitch) {
-            /*If a switch has been marked, make the switch
-            and mark that a switch has been done:*/
-            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            switching = true;
-        }
-    }
-}
 
-  </script>
+        #side-panel {
+            flex-basis: 500px;
+            overflow-y: scroll;
+        }
+
+        #map {
+            flex-grow: 1;
+        }
+
+        button {
+            margin-bottom: 10px;
+            margin-left: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <main id="container">
+        <div id="map"></div>
+        <div id="side-panel">
+
+            <h2>Taco Bell's in Seattle</h2>
+            <button id="theButton">Sort by Opening Time</button>
+
+            <table>
+                <tr>
+                    <th>Restaurant</th>
+                    <th>Opening Time</th>
+                    <th>Closing Time</th>
+                </tr>
+            </table>
+
+        </div>
+        
+
+    </main>
+    <script>
+        // define the mapbox access token
+        mapboxgl.accessToken = 
+            'pk.eyJ1IjoicGhhbmN5IiwiYSI6ImNrdmNzejJ4azBkZGsyb21scmU0aW02N3IifQ.v7OU5UTPLg9-4TVZyUFtng';
+
+        // define the map object
+        let map = new mapboxgl.Map({
+            container: 'map', // container ID
+            style: 'mapbox://styles/mapbox/streets-v11', // style URL
+            zoom: 10, // starting zoom
+            center: [237.7, 47.6] // starting center
+        });
+
+
+
+        async function geojsonFetch() {
+
+            let response, seattle, tacobell, table;
+            response = await fetch('assets/Seattle.geojson');
+            seattle = await response.json();
+            response = await fetch('assets/TacoBell.geojson');
+            tacobell = await response.json();
+
+            table = document.getElementsByTagName("table")[0];
+            let row, cell1, cell2, cell3;
+            for (let i = 0; i < tacobell.features.length; i++) {
+                // Create an empty <tr> element and add it to the 1st position of the table:
+                row = table.insertRow(-1);
+                cell1 = row.insertCell(0);
+                cell2 = row.insertCell(1);
+                cell3 = row.insertCell(2);
+                cell1.innerHTML = tacobell.features[i].properties.Restaurant;
+                cell2.innerHTML = tacobell.features[i].properties.Open;
+                cell3.innerHTML = tacobell.features[i].properties.Close;
+            }
+
+
+            //load data to the map as new layers and table on the side.
+            map.on('load', function loadingData() {
+
+                map.addSource('tacobell', {
+                    type: 'geojson',
+                    data: tacobell
+                });
+
+                map.addLayer({
+                    'id': 'tacobell-layer',
+                    'type': 'circle',
+                    'source': 'tacobell',
+                    'paint': {
+                        'circle-radius': 8,
+                        'circle-stroke-width': 2,
+                        'circle-color': 'red',
+                        'circle-stroke-color': 'white'
+                    }
+                });
+
+
+                map.addSource('seattle', {
+                    type: 'geojson',
+                    data: seattle
+                });
+
+                map.addLayer({
+                    'id': 'seattle-layer',
+                    'type': 'fill',
+                    'source': 'seattle',
+                    'paint': {
+                        'fill-color': '#0080ff', // blue color fill
+                        'fill-opacity': 0.5
+                    }
+                });
+
+            });
+
+        }
+
+        geojsonFetch();
+
+        let btn = document.getElementById("theButton");
+
+        btn.addEventListener('click', sortTable);
+
+        // define the function to sort table
+        function sortTable(e) {
+            console.log("button lcick");
+            let table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementsByTagName("table")[0];
+            switching = true;
+            /*Make a loop that will continue until
+            no switching has been done:*/
+            while (switching) {
+                //start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /*Loop through all table rows (except the
+                first, which contains table headers):*/
+                for (i = 1; i < (rows.length - 1); i++) {
+                    //start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /*Get the two elements you want to compare,
+                    one from current row and one from the next:*/
+                    timeX = (rows[i].getElementsByTagName("td")[1].textContent);
+                    let hrMinx = timeX.substring(0,timeX.length-2).split(":");
+                    x = parseInt(hrMinx[0])* 60 + parseInt(hrMinx[1]);
+                    console.log(x);
+                    
+                    timeY = (rows[i + 1].getElementsByTagName("td")[1].textContent);
+                    let hrMiny = timeY.substring(0,timeY.length-2).split(":");
+                    y = parseInt(hrMiny[0])* 60 + parseInt(hrMiny[1]);
+                    //y = rows[i + 1].getElementsByTagName("td")[1].innerHTML;
+                    console.log(y);
+                    //check if the two rows should switch place:
+                    if (x > y) {
+                        //if so, mark as a switch and break the loop:
+                        console.log("switch");
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+                if (shouldSwitch) {
+                    /*If a switch has been marked, make the switch
+                    and mark that a switch has been done:*/
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+    </script>
+
 </body>
-<html>
+
+</html>
